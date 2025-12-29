@@ -17,7 +17,8 @@ def load_data():
 @st.cache_resource
 def train_model(df):
     X = df[['Season', 'Weather', 'Temperature', 'Long_Weekend', 'Promotion', 'Holiday']]
-    y = df['Boxes_Ordered']
+    # Predict all ingredient box counts
+    y = df[['Tomato_Boxes', 'Green_Pepper_Boxes', 'Lettuce_Boxes', 'Cucumber_Boxes']]
 
     # Note: Categorical features must match what is in the CSV and what is produced by inputs
     categorical_features = ['Season', 'Weather', 'Temperature']
@@ -38,8 +39,8 @@ def train_model(df):
     return model
 
 def main():
-    st.title('🍅 Tomato Ordering AI')
-    st.markdown("Use this tool to predict how many boxes of tomatoes you need to order.")
+    st.title('🥗 Ingredient Ordering AI')
+    st.markdown("Use this tool to predict how many boxes of ingredients you need to order.")
 
     df = load_data()
     model = train_model(df)
@@ -79,8 +80,18 @@ def main():
         })
 
         prediction = model.predict(input_data)[0]
-        st.success(f"Recommended Order: {int(round(prediction))} boxes")
-        st.info(f"Raw prediction: {prediction:.2f}")
+
+        # Prediction is now an array of 4 values: [Tomato, Green Pepper, Lettuce, Cucumber]
+        # We need to map them back to the ingredient names
+        ingredients = ['Tomato', 'Green Pepper', 'Lettuce', 'Cucumber']
+
+        st.success("Recommended Orders:")
+
+        cols = st.columns(4)
+        for i, ingredient in enumerate(ingredients):
+            with cols[i]:
+                st.metric(label=f"{ingredient} Boxes", value=int(round(prediction[i])))
+                st.caption(f"Raw: {prediction[i]:.2f}")
 
 if __name__ == '__main__':
     main()
