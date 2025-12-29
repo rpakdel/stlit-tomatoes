@@ -1,3 +1,5 @@
+TEMPERATURE_CATEGORIES = ['Very cold', 'Cold', 'Normal', 'Warm', 'Hot']
+
 def get_season(date_obj):
     """
     Determines the season based on the date for Vancouver, Canada.
