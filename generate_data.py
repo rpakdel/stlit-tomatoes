@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import random
 from datetime import datetime, timedelta
+from model_utils import get_season, get_temperature_category
 
 def generate_data():
     start_date = datetime(2020, 1, 1)
@@ -12,34 +13,41 @@ def generate_data():
 
     for i in range(delta.days + 1):
         day = start_date + timedelta(days=i)
-        month = day.month
         weekday = day.weekday() # 0=Monday, 6=Sunday
 
         # Determine Season
-        if month in [12, 1, 2]:
-            season = 'Winter'
-        elif month in [3, 4, 5]:
-            season = 'Spring'
-        elif month in [6, 7, 8]:
-            season = 'Summer'
-        else:
-            season = 'Autumn'
+        season = get_season(day)
 
-        # Determine Weather and Temp
+        # Determine Weather
         weather_options = ['Sunny', 'Cloudy', 'Rainy']
         if season == 'Winter':
             weather_options.append('Snowy')
 
-        # Weight weather based on season
-        if season == 'Summer':
+        # Generate Temperature (Celsius) and Weather based on season
+        if season == 'Winter':
+            # Vancouver Winter: ~4C, sometimes < 0, sometimes > 10
+            temp_c = random.gauss(4, 4)
+            weather = random.choices(weather_options, weights=[0.2, 0.3, 0.3, 0.2], k=1)[0]
+        elif season == 'Spring':
+            # Vancouver Spring: ~13C
+            temp_c = random.gauss(13, 4)
+            weather = random.choices(weather_options, weights=[0.4, 0.3, 0.3], k=1)[0]
+        elif season == 'Summer':
+            # Vancouver Summer: ~22C, can reach 30+
+            temp_c = random.gauss(22, 4)
             weather = random.choices(weather_options, weights=[0.6, 0.2, 0.2], k=1)[0]
-            temp = random.choices(['High', 'Medium'], weights=[0.8, 0.2], k=1)[0]
-        elif season == 'Winter':
-            weather = random.choices(weather_options, weights=[0.2, 0.3, 0.2, 0.3], k=1)[0]
-            temp = random.choices(['Low', 'Medium'], weights=[0.8, 0.2], k=1)[0]
-        else:
-            weather = random.choice(weather_options)
-            temp = random.choice(['Low', 'Medium', 'High'])
+        else: # Autumn
+            # Vancouver Autumn: ~11C
+            temp_c = random.gauss(11, 4)
+            weather = random.choices(weather_options, weights=[0.3, 0.3, 0.4], k=1)[0]
+
+        temp_category = get_temperature_category(temp_c)
+
+        # Consistency checks (e.g. Snowy only if cold enough)
+        if weather == 'Snowy' and temp_c > 5:
+            weather = 'Rainy'
+        if weather == 'Rainy' and temp_c < -1:
+            weather = 'Snowy'
 
         # Long Weekend
         is_long_weekend = False
@@ -49,14 +57,15 @@ def generate_data():
 
         # Holiday (Simple approximation)
         is_holiday = False
+        month = day.month
         # New Year
         if month == 1 and day.day == 1: is_holiday = True
         # Christmas
         if month == 12 and day.day == 25: is_holiday = True
-        # July 4th
-        if month == 7 and day.day == 4: is_holiday = True
-        # Thanksgiving (approx late Nov)
-        if month == 11 and day.day == 26: is_holiday = True # Fixed date for simplicity
+        # Canada Day (July 1st) - using July 4th in original code but Vancouver implies Canada Day
+        if month == 7 and day.day == 1: is_holiday = True
+        # Thanksgiving (Canada is 2nd Mon in Oct) - approximations
+        if month == 10 and 8 <= day.day <= 14 and weekday == 0: is_holiday = True
 
         # Promotion
         is_promotion = random.random() < 0.15
@@ -64,8 +73,9 @@ def generate_data():
         # Calculate Boxes
         boxes = random.randint(2, 5)
 
-        # Modifiers
-        if season == 'Summer' and weather == 'Sunny' and temp == 'High':
+        # Modifiers using new categories
+        # High sales on nice summer days
+        if season == 'Summer' and weather == 'Sunny' and temp_category in ['Warm', 'Hot']:
             boxes += random.randint(2, 4)
 
         if is_long_weekend:
@@ -74,21 +84,21 @@ def generate_data():
         if is_promotion:
             boxes += random.randint(2, 3)
 
-        if weather == 'Rainy' or (season != 'Summer' and temp == 'Low'):
+        # Low sales on bad weather days
+        if weather == 'Rainy' or (season != 'Summer' and temp_category in ['Cold', 'Very cold']):
             boxes -= random.randint(1, 2)
 
         if is_holiday:
             boxes += random.randint(5, 10)
 
-        # Ensure boxes is at least 0 (or 1 realistically if opened)
-        # Assuming restaurant is open. If holiday and closed? Prompt says "exceptionally high during holidays when other restaurants are closed". So we assume open.
+        # Ensure boxes is at least 1
         boxes = max(1, boxes)
 
         data.append({
             'Date': day.strftime('%Y-%m-%d'),
             'Season': season,
             'Weather': weather,
-            'Temperature': temp,
+            'Temperature': temp_category,
             'Long_Weekend': is_long_weekend,
             'Promotion': is_promotion,
             'Holiday': is_holiday,

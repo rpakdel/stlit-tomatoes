@@ -5,6 +5,7 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from datetime import datetime
+from model_utils import get_season, get_temperature_category
 
 # Load data
 @st.cache_data
@@ -18,6 +19,7 @@ def train_model(df):
     X = df[['Season', 'Weather', 'Temperature', 'Long_Weekend', 'Promotion', 'Holiday']]
     y = df['Boxes_Ordered']
 
+    # Note: Categorical features must match what is in the CSV and what is produced by inputs
     categorical_features = ['Season', 'Weather', 'Temperature']
 
     preprocessor = ColumnTransformer(
@@ -51,9 +53,18 @@ def main():
 
     with col1:
         date = st.date_input("Date", datetime.now())
-        season = st.selectbox("Season", ['Winter', 'Spring', 'Summer', 'Autumn'])
+
+        # Automatically calculate season
+        season = get_season(date)
+        st.write(f"Season: **{season}**")
+
         weather = st.selectbox("Weather", ['Sunny', 'Cloudy', 'Rainy', 'Snowy'])
-        temperature = st.selectbox("Temperature", ['Low', 'Medium', 'High'])
+
+        # User inputs numerical temperature
+        temperature_c = st.number_input("Temperature (°C)", value=15.0, step=0.5)
+        # Convert to category for model
+        temperature_category = get_temperature_category(temperature_c)
+        st.write(f"Temperature Category: **{temperature_category}**")
 
     with col2:
         is_long_weekend = st.checkbox("Long Weekend?")
@@ -64,7 +75,7 @@ def main():
         input_data = pd.DataFrame({
             'Season': [season],
             'Weather': [weather],
-            'Temperature': [temperature],
+            'Temperature': [temperature_category],
             'Long_Weekend': [is_long_weekend],
             'Promotion': [is_promotion],
             'Holiday': [is_holiday]
