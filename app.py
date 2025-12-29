@@ -5,7 +5,7 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from datetime import datetime
-from model_utils import get_season, get_temperature_category
+from model_utils import get_season, TEMPERATURE_CATEGORIES
 
 # Load data
 @st.cache_data
@@ -60,11 +60,8 @@ def main():
 
         weather = st.selectbox("Weather", ['Sunny', 'Cloudy', 'Rainy', 'Snowy'])
 
-        # User inputs numerical temperature
-        temperature_c = st.number_input("Temperature (°C)", value=15.0, step=0.5)
-        # Convert to category for model
-        temperature_category = get_temperature_category(temperature_c)
-        st.write(f"Temperature Category: **{temperature_category}**")
+        # User selects temperature category
+        temperature_category = st.selectbox("Temperature Category", TEMPERATURE_CATEGORIES)
 
     with col2:
         is_long_weekend = st.checkbox("Long Weekend?")
