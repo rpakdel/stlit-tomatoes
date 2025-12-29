@@ -15,7 +15,7 @@ def load_data():
 # Train model
 @st.cache_resource
 def train_model(df):
-    X = df[['Season', 'Weather', 'Temperature', 'Long_Weekend', 'Promotion', 'Holiday', 'Is_Weekend']]
+    X = df[['Season', 'Weather', 'Temperature', 'Long_Weekend', 'Promotion', 'Holiday']]
     y = df['Boxes_Ordered']
 
     categorical_features = ['Season', 'Weather', 'Temperature']
@@ -60,9 +60,6 @@ def main():
         is_promotion = st.checkbox("Promotion?")
         is_holiday = st.checkbox("Holiday?")
 
-    weekday = date.weekday()
-    is_weekend = weekday >= 5
-
     if st.button("Predict"):
         input_data = pd.DataFrame({
             'Season': [season],
@@ -70,8 +67,7 @@ def main():
             'Temperature': [temperature],
             'Long_Weekend': [is_long_weekend],
             'Promotion': [is_promotion],
-            'Holiday': [is_holiday],
-            'Is_Weekend': [is_weekend]
+            'Holiday': [is_holiday]
         })
 
         prediction = model.predict(input_data)[0]
