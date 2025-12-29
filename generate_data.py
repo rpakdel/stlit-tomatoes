@@ -42,7 +42,6 @@ def generate_data():
             temp = random.choice(['Low', 'Medium', 'High'])
 
         # Long Weekend
-        is_weekend = weekday >= 5
         is_long_weekend = False
         if weekday == 4 or weekday == 0: # Friday or Monday
             if random.random() < 0.05: # Occasional long weekend
@@ -78,9 +77,6 @@ def generate_data():
         if weather == 'Rainy' or (season != 'Summer' and temp == 'Low'):
             boxes -= random.randint(1, 2)
 
-        if season == 'Winter' and weather == 'Snowy' and is_weekend:
-            boxes += 3
-
         if is_holiday:
             boxes += random.randint(5, 10)
 
@@ -96,7 +92,6 @@ def generate_data():
             'Long_Weekend': is_long_weekend,
             'Promotion': is_promotion,
             'Holiday': is_holiday,
-            'Is_Weekend': is_weekend,
             'Boxes_Ordered': boxes
         })
 
