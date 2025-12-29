@@ -1,15 +1,19 @@
 import streamlit as st
 import pandas as pd
+import os
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from datetime import datetime
 from model_utils import get_season, get_temperature_category
+from generate_data import generate_data
 
 # Load data
 @st.cache_data
 def load_data():
+    if not os.path.exists('tomato_sales_history.csv'):
+        generate_data()
     df = pd.read_csv('tomato_sales_history.csv')
     return df
 
