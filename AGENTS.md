@@ -20,3 +20,10 @@ Build a Streamlit application that uses AI and heuristics to help a restaurant o
 - Cold/Rainy: Decrease order.
 - Winter + Snow + Weekend: Increase order.
 - Holidays: Exceptionally high order.
+
+## Progress
+- **Refined App UX**: Automate Season selection based on the Date input and filter Weather options.
+- **Input Refinement**: Changed Temperature input from numerical to categorical (Very cold, Cold, Normal, Warm, Hot) for better user experience.
+- **Data Automation**: Implemented `generate_data.py` to automatically create realistic mock sales history (`tomato_sales_history.csv`) if missing.
+- **Code Organization**: Refactored shared logic into `model_utils.py` and configured `.gitignore` for generated files.
+- **Feature Cleanup**: Removed `Is_Weekend` feature as orders are strictly placed on Wednesdays.
