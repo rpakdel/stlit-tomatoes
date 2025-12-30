@@ -6,6 +6,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from datetime import datetime
 import requests
+import os
 from model_utils import get_season, TEMPERATURE_CATEGORIES, get_temperature_category
 
 def get_weather_category(weather_code):
@@ -55,6 +56,12 @@ def fetch_weather_data(date):
 # Load data
 @st.cache_data
 def load_data():
+    # Generate data if file doesn't exist
+    if not os.path.exists('tomato_sales_history.csv'):
+        st.info("Generating initial data file...")
+        from generate_data import generate_data
+        generate_data()
+    
     df = pd.read_csv('tomato_sales_history.csv')
     return df
 
@@ -62,7 +69,8 @@ def load_data():
 @st.cache_resource
 def train_model(df):
     X = df[['Season', 'Weather', 'Temperature', 'Long_Weekend', 'Promotion', 'Holiday']]
-    y = df['Boxes_Ordered']
+    # Predict all ingredient box counts
+    y = df[['Tomato_Boxes', 'Green_Pepper_Boxes', 'Lettuce_Boxes', 'Cucumber_Boxes']]
 
     # Note: Categorical features must match what is in the CSV and what is produced by inputs
     categorical_features = ['Season', 'Weather', 'Temperature']
@@ -83,8 +91,8 @@ def train_model(df):
     return model
 
 def main():
-    st.title('🍅 Tomato Ordering AI')
-    st.markdown("Use this tool to predict how many boxes of tomatoes you need to order.")
+    st.title('🥗 Ingredient Ordering AI')
+    st.markdown("Use this tool to predict how many boxes of ingredients you need to order.")
 
     df = load_data()
     model = train_model(df)
@@ -107,8 +115,10 @@ def main():
         weather, max_temp = fetch_weather_data(date)
 
         if weather is None:
-            st.error("Weather report is not available for the selected week of the date.")
-            temperature_category = None
+            st.warning("Weather report is not available for the selected date. Please enter manually.")
+            # Fallback to manual input if weather API fails or no data
+            weather = st.selectbox("Weather", ['Sunny', 'Cloudy', 'Rainy', 'Snowy'])
+            temperature_category = st.selectbox("Temperature Category", TEMPERATURE_CATEGORIES)
         else:
             temperature_category = get_temperature_category(max_temp)
             st.info(f"Weather: **{weather}**")
@@ -121,7 +131,7 @@ def main():
 
     if st.button("Predict"):
         if weather is None or temperature_category is None:
-            st.error("Cannot predict without weather data.")
+             st.error("Cannot predict without weather data.")
         else:
             input_data = pd.DataFrame({
                 'Season': [season],
@@ -133,8 +143,18 @@ def main():
             })
 
             prediction = model.predict(input_data)[0]
-            st.success(f"Recommended Order: {int(round(prediction))} boxes")
-            st.info(f"Raw prediction: {prediction:.2f}")
+
+            # Prediction is now an array of 4 values: [Tomato, Green Pepper, Lettuce, Cucumber]
+            # We need to map them back to the ingredient names
+            ingredients = ['Tomato', 'Green Pepper', 'Lettuce', 'Cucumber']
+
+            st.success("Recommended Orders:")
+
+            cols = st.columns(4)
+            for i, ingredient in enumerate(ingredients):
+                with cols[i]:
+                    st.metric(label=f"{ingredient} Boxes", value=int(round(prediction[i])))
+                    st.caption(f"Raw: {prediction[i]:.2f}")
 
 if __name__ == '__main__':
     main()

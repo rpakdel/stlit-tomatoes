@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+tomato_sales_history.csv
+streamlit_output.log

@@ -70,29 +70,50 @@ def generate_data():
         # Promotion
         is_promotion = random.random() < 0.15
 
-        # Calculate Boxes
-        boxes = random.randint(2, 5)
+        # Base Orders
+        tomato_boxes = random.randint(2, 5)
+        green_pepper_boxes = random.randint(1, 3)
+        lettuce_boxes = random.randint(2, 4)
+        cucumber_boxes = random.randint(1, 4)
 
         # Modifiers using new categories
         # High sales on nice summer days
         if season == 'Summer' and weather == 'Sunny' and temp_category in ['Warm', 'Hot']:
-            boxes += random.randint(2, 4)
+            tomato_boxes += random.randint(2, 4)
+            green_pepper_boxes += random.randint(1, 3)
+            lettuce_boxes += random.randint(2, 5)
+            cucumber_boxes += random.randint(2, 4)
 
         if is_long_weekend:
-            boxes += 2
+            tomato_boxes += 2
+            green_pepper_boxes += 1
+            lettuce_boxes += 2
+            cucumber_boxes += 1
 
         if is_promotion:
-            boxes += random.randint(2, 3)
+            tomato_boxes += random.randint(2, 3)
+            green_pepper_boxes += random.randint(1, 2)
+            lettuce_boxes += random.randint(2, 4)
+            cucumber_boxes += random.randint(1, 3)
 
         # Low sales on bad weather days
         if weather == 'Rainy' or (season != 'Summer' and temp_category in ['Cold', 'Very cold']):
-            boxes -= random.randint(1, 2)
+            tomato_boxes -= random.randint(1, 2)
+            green_pepper_boxes -= 1
+            lettuce_boxes -= random.randint(1, 2)
+            cucumber_boxes -= 1
 
         if is_holiday:
-            boxes += random.randint(5, 10)
+            tomato_boxes += random.randint(5, 10)
+            green_pepper_boxes += random.randint(3, 6)
+            lettuce_boxes += random.randint(5, 10)
+            cucumber_boxes += random.randint(4, 8)
 
-        # Ensure boxes is at least 1
-        boxes = max(1, boxes)
+        # Ensure boxes is at least 1 (or 0 if that makes sense, but let's say 1 minimum for operation)
+        tomato_boxes = max(1, tomato_boxes)
+        green_pepper_boxes = max(1, green_pepper_boxes)
+        lettuce_boxes = max(1, lettuce_boxes)
+        cucumber_boxes = max(1, cucumber_boxes)
 
         data.append({
             'Date': day.strftime('%Y-%m-%d'),
@@ -102,7 +123,10 @@ def generate_data():
             'Long_Weekend': is_long_weekend,
             'Promotion': is_promotion,
             'Holiday': is_holiday,
-            'Boxes_Ordered': boxes
+            'Tomato_Boxes': tomato_boxes,
+            'Green_Pepper_Boxes': green_pepper_boxes,
+            'Lettuce_Boxes': lettuce_boxes,
+            'Cucumber_Boxes': cucumber_boxes
         })
 
     df = pd.DataFrame(data)
