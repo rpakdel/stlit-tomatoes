@@ -6,6 +6,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from datetime import datetime
 import requests
+import os
 from model_utils import get_season, TEMPERATURE_CATEGORIES, get_temperature_category
 
 def get_weather_category(weather_code):
@@ -55,6 +56,12 @@ def fetch_weather_data(date):
 # Load data
 @st.cache_data
 def load_data():
+    # Generate data if file doesn't exist
+    if not os.path.exists('tomato_sales_history.csv'):
+        st.info("Generating initial data file...")
+        from generate_data import generate_data
+        generate_data()
+    
     df = pd.read_csv('tomato_sales_history.csv')
     return df
 

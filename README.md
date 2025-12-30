@@ -14,14 +14,20 @@ This is a Streamlit application designed to help a restaurant owner determine ho
 
 ## Running Locally
 
-1. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-2. Run the app:
-   ```bash
-   streamlit run app.py
-   ```
+### Using Dev Container (Recommended)
+Open this project in VS Code with the Dev Containers extension. The container will be automatically set up with all dependencies.
+
+### Using Docker
+Build and run the app using the provided Dockerfile:
+```bash
+docker-compose up
+```
+
+Or build manually:
+```bash
+docker build -t tomato-ordering-ai .
+docker run -p 8501:8501 tomato-ordering-ai
+```
 
 ## Deployment
 
