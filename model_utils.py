@@ -29,6 +29,9 @@ def get_temperature_category(temp):
     Warm: 17 until 27
     Hot: 27C and above
     """
+    if temp is None:
+        return None
+
     if temp <= -3:
         return 'Very cold'
     elif temp < 10:
