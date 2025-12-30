@@ -16,7 +16,7 @@ def main():
     st.markdown("Use this tool to predict how many boxes of ingredients you need to order.")
 
     df = load_data()
-    model = train_model(df)
+    model, metrics = train_model(df)
     
     # Prepare training data for SHAP explainer
     X_train = df[['Season', 'Weather', 'Temperature', 'Long_Weekend', 'Promotion', 'Holiday']]
@@ -33,6 +33,22 @@ def main():
     # Apply styling
     styled_df = apply_year_highlight(display_df)
     st.dataframe(styled_df, hide_index=True)
+
+    st.header("Model Performance")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric("Mean Absolute Error (Avg)", f"{metrics['overall_mae']:.2f}")
+    with col2:
+        st.metric("R² Score (Avg)", f"{metrics['overall_r2']:.2f}")
+
+    with st.expander("Detailed Performance by Ingredient"):
+        cols = st.columns(4)
+        ingredients = ['Tomato', 'Green Pepper', 'Lettuce', 'Cucumber']
+        for i, ingredient in enumerate(ingredients):
+            with cols[i]:
+                st.write(f"**{ingredient}**")
+                st.write(f"MAE: {metrics[f'{ingredient}_mae']:.2f}")
+                st.write(f"R²: {metrics[f'{ingredient}_r2']:.2f}")
 
     st.header("Predict Order")
 
