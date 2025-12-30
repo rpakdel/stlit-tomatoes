@@ -5,6 +5,7 @@ from datetime import datetime
 from model_utils import get_season, TEMPERATURE_CATEGORIES, get_temperature_category
 from data_loader import load_data
 from data_filter import filter_by_week
+from data_formatter import format_dates_for_display
 from weather_service import fetch_weather_data
 from model_trainer import train_model, predict_orders
 
@@ -18,7 +19,8 @@ def main():
 
     st.header("Historical Data")
     preview_df = filter_by_week(df)
-    st.dataframe(preview_df)
+    display_df = format_dates_for_display(preview_df)
+    st.dataframe(display_df)
 
     st.header("Predict Order")
 

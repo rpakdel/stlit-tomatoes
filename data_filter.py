@@ -17,10 +17,11 @@ def filter_by_week(df, week_number=None):
     if week_number is None:
         week_number = datetime.now().isocalendar()[1]
     
-    filtered_df = df[df['Date'].dt.isocalendar().week == week_number].sort_values('Date')
+    # Sort in descending order (latest first)
+    filtered_df = df[df['Date'].dt.isocalendar().week == week_number].sort_values('Date', ascending=False)
     
     # Fallback to last 4 entries if no data for the specified week
     if filtered_df.empty:
-        filtered_df = df.tail(4)
+        filtered_df = df.tail(4).sort_values('Date', ascending=False)
     
     return filtered_df

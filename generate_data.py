@@ -4,9 +4,21 @@ import random
 from datetime import datetime, timedelta
 from model_utils import get_season, get_temperature_category
 
-def generate_data():
-    start_date = datetime(2020, 1, 1)
-    end_date = datetime(2023, 12, 31)
+def generate_data(start_date=None, end_date=None):
+    """
+    Generate historical sales data for Wednesdays.
+    
+    Args:
+        start_date: Start date for data generation (datetime). If None, calculated from end_date.
+        end_date: End date for data generation (datetime). If None, uses current date.
+    """
+    if end_date is None:
+        end_date = datetime.now()
+    
+    if start_date is None:
+        # Generate 4 years of data before the end date
+        start_date = end_date - timedelta(days=365 * 4)
+    
     delta = end_date - start_date
 
     data = []
@@ -134,8 +146,8 @@ def generate_data():
         })
 
     df = pd.DataFrame(data)
-    df.to_csv('tomato_sales_history.csv', index=False)
-    print("Data generated and saved to tomato_sales_history.csv")
+    df.to_csv('sales_history.csv', index=False)
+    print("Data generated and saved to sales_history.csv")
 
 if __name__ == '__main__':
     generate_data()
