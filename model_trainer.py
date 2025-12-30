@@ -5,6 +5,8 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_absolute_error, r2_score
 
 
 @st.cache_resource
@@ -16,11 +18,13 @@ def train_model(df):
         df: DataFrame with historical sales data
     
     Returns:
-        Trained scikit-learn Pipeline model
+        tuple: (Trained scikit-learn Pipeline model, dict of metrics)
     """
     X = df[['Season', 'Weather', 'Temperature', 'Long_Weekend', 'Promotion', 'Holiday']]
     # Predict all ingredient box counts
     y = df[['Tomato_Boxes', 'Green_Pepper_Boxes', 'Lettuce_Boxes', 'Cucumber_Boxes']]
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
     # Categorical features must match what is in the CSV and what is produced by inputs
     categorical_features = ['Season', 'Weather', 'Temperature']
@@ -37,8 +41,26 @@ def train_model(df):
         ('regressor', RandomForestRegressor(n_estimators=100, random_state=42))
     ])
 
-    model.fit(X, y)
-    return model
+    model.fit(X_train, y_train)
+
+    y_pred = model.predict(X_test)
+
+    metrics = {}
+    target_names = ['Tomato', 'Green Pepper', 'Lettuce', 'Cucumber']
+
+    # Overall metrics
+    metrics['overall_mae'] = mean_absolute_error(y_test, y_pred)
+    metrics['overall_r2'] = r2_score(y_test, y_pred)
+
+    # Per-target metrics
+    mae_per_target = mean_absolute_error(y_test, y_pred, multioutput='raw_values')
+    r2_per_target = r2_score(y_test, y_pred, multioutput='raw_values')
+
+    for i, target in enumerate(target_names):
+        metrics[f'{target}_mae'] = mae_per_target[i]
+        metrics[f'{target}_r2'] = r2_per_target[i]
+
+    return model, metrics
 
 
 def predict_orders(model, season, weather, temperature, is_long_weekend, is_promotion, is_holiday):
