@@ -13,7 +13,12 @@ def generate_data(start_date=None, end_date=None):
         end_date: End date for data generation (datetime). If None, uses current date.
     """
     if end_date is None:
-        end_date = datetime.now()
+        today = datetime.now()
+        # Calculate days to subtract to get to the most recent Wednesday (weekday 2)
+        # If today is Wednesday (2), offset is 0.
+        # If today is Thursday (3), offset is 1.
+        offset = (today.weekday() - 2) % 7
+        end_date = today - timedelta(days=offset)
     
     if start_date is None:
         # Generate 4 years of data before the end date

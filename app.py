@@ -5,7 +5,7 @@ from datetime import datetime
 from model_utils import get_season, TEMPERATURE_CATEGORIES, get_temperature_category
 from data_loader import load_data
 from data_filter import filter_by_week
-from data_formatter import format_dates_for_display
+from data_formatter import format_data_for_display, apply_year_highlight
 from weather_service import fetch_weather_data
 from model_trainer import train_model, predict_orders
 
@@ -18,9 +18,16 @@ def main():
     model = train_model(df)
 
     st.header("Historical Data")
-    preview_df = filter_by_week(df)
-    display_df = format_dates_for_display(preview_df)
-    st.dataframe(display_df)
+    
+    # Get current week number for filtering and formatting
+    current_week = datetime.now().isocalendar()[1]
+    
+    preview_df = filter_by_week(df, current_week)
+    display_df = format_data_for_display(preview_df, current_week)
+    
+    # Apply styling
+    styled_df = apply_year_highlight(display_df)
+    st.dataframe(styled_df, hide_index=True)
 
     st.header("Predict Order")
 
