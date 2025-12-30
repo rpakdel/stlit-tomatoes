@@ -14,6 +14,10 @@ def generate_data():
     for i in range(delta.days + 1):
         day = start_date + timedelta(days=i)
         weekday = day.weekday() # 0=Monday, 6=Sunday
+        
+        # Only generate data for Wednesdays (weekday = 2)
+        if weekday != 2:
+            continue
 
         # Determine Season
         season = get_season(day)
