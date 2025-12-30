@@ -1,0 +1,56 @@
+{
+  "name": "Streamlit Tomatoes Dev",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+  
+  // Configure tool-specific properties
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.linting.enabled": true,
+        "python.linting.pylintEnabled": false,
+        "python.formatting.provider": "black",
+        "python.testing.pytestEnabled": true,
+        "editor.formatOnSave": true,
+        "files.autoSave": "afterDelay"
+      },
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-python.debugpy",
+        "ms-toolsai.jupyter",
+        "streetsidesoftware.code-spell-checker"
+      ]
+    }
+  },
+
+  // Forward Streamlit port
+  "forwardPorts": [8501, 5678],
+  "portsAttributes": {
+    "8501": {
+      "label": "Streamlit App",
+      "onAutoForward": "notify"
+    },
+    "5678": {
+      "label": "Python Debugger",
+      "onAutoForward": "silent"
+    }
+  },
+
+  // Use 'postCreateCommand' to run commands after the container is created
+  "postCreateCommand": "pip install --no-cache-dir -r requirements.txt",
+
+  // Comment out to connect as root instead
+  "remoteUser": "vscode",
+
+  // Features to add to the dev container
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  }
+}
