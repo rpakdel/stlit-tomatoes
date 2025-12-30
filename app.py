@@ -8,6 +8,7 @@ from data_filter import filter_by_week
 from data_formatter import format_data_for_display, apply_year_highlight
 from weather_service import fetch_weather_data
 from model_trainer import train_model, predict_orders
+from shap_explainer import create_explainer, plot_waterfall
 
 
 def main():
@@ -16,6 +17,10 @@ def main():
 
     df = load_data()
     model = train_model(df)
+    
+    # Prepare training data for SHAP explainer
+    X_train = df[['Season', 'Weather', 'Temperature', 'Long_Weekend', 'Promotion', 'Holiday']]
+    explainer = create_explainer(model, X_train)
 
     st.header("Historical Data")
     
@@ -76,6 +81,49 @@ def main():
                 with cols[i]:
                     st.metric(label=f"{ingredient} Boxes", value=int(round(prediction[i])))
                     st.caption(f"Raw: {prediction[i]:.2f}")
+            
+            # SHAP Explainability Section
+            st.header("Why These Predictions?")
+            st.markdown("The visualizations below show how each factor influenced the recommended order quantities.")
+            
+            # Prepare input data for SHAP
+            input_data = pd.DataFrame({
+                'Season': [season],
+                'Weather': [weather],
+                'Temperature': [temperature_category],
+                'Long_Weekend': [is_long_weekend],
+                'Promotion': [is_promotion],
+                'Holiday': [is_holiday]
+            })
+            
+            # Create tabs for each ingredient
+            tabs = st.tabs(ingredients)
+            
+            for i, (tab, ingredient) in enumerate(zip(tabs, ingredients)):
+                with tab:
+                    try:
+                        # Get base values (expected value from model)
+                        preprocessor = model.named_steps['preprocessor']
+                        X_train_preprocessed = preprocessor.transform(X_train)
+                        regressor = model.named_steps['regressor']
+                        base_values = regressor.predict(X_train_preprocessed).mean(axis=0)
+                        
+                        # Create and display waterfall plot
+                        fig = plot_waterfall(
+                            explainer, model, input_data,
+                            ingredient, i, base_values
+                        )
+                        st.pyplot(fig)
+                        
+                        st.markdown(f"""
+                        **How to read this chart:**
+                        - The chart shows how different factors push the predicted {ingredient} boxes up (red) or down (blue)
+                        - Start from the base value (expected average) on the left
+                        - Each factor adds or subtracts from the prediction
+                        - The final prediction is shown on the right
+                        """)
+                    except Exception as e:
+                        st.warning(f"Could not generate explanation for {ingredient}: {str(e)}")
 
 
 if __name__ == '__main__':
